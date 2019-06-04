@@ -192,7 +192,7 @@ class App extends Component {
     texts = this.state.parsedXml,
     xmlLength = this.state.xmlLength,
     ssmlBreak = this.state.ssmlBreak,
-    isWavenetWrap = true
+    isWavenetWrap = this.state.isWavenetWrap
   ) {
     const ssml = {};
     let n = 0;
