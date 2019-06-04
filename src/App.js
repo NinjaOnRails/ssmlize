@@ -197,7 +197,12 @@ class App extends Component {
     const ssml = {};
     let n = 0;
     ssml[n] = '';
+    const regex = /(?:[a-zA-Z]\.){2,3}|(?:\W[A-Z]{2,3}(\W|\.|\?|\!))|^[A-Z]{2,3}/g;
     for (let i = 0; i < xmlLength; i += 1) {
+      const newText = texts[i]._.replace(
+        regex,
+        match => ` <say-as interpret-as="characters">${match}</say-as> `
+      );
       let line = '';
       if (i !== xmlLength - 1) {
         const breakTime = (
@@ -208,12 +213,11 @@ class App extends Component {
               100,
             10
           ) + ssmlBreak
-        )
-          .toString();
+        ).toString();
         const breakTag = ` <break time=\\"${breakTime}ms\\" />`;
-        line = texts[i]._ + breakTag + '\n';
+        line = newText + breakTag + '\n';
       } else {
-        line = texts[i]._;
+        line = newText + '\n';
       }
 
       //   const breakTag =
@@ -252,7 +256,7 @@ class App extends Component {
     this.setState({
       ssmlObject: { ...ssml },
       ssml: ssml[this.state.ssmlPart],
-      textareaHeight: parseInt(ssml[0].split('\n').length + 2, 10),
+      textareaHeight: parseInt(ssml[0].split('\n').length + 10, 10),
     });
   }
 
