@@ -24,6 +24,7 @@ class App extends Component {
     parsedXml: {},
     xmlLength: 0,
     isWavenetWrap: true,
+    copySuccess: '',
   };
 
   handleChange = e => {
@@ -61,7 +62,7 @@ class App extends Component {
       });
     }
 
-    this.setState({ [name]: val });
+    this.setState({ [name]: val, copySuccess: '' });
   };
 
   onWavenetWrapChange(e) {
@@ -69,6 +70,13 @@ class App extends Component {
     this.setState({ isWavenetWrap: !isWavenetWrap });
     if (ssmlObject)
       this.formatSsml(undefined, undefined, undefined, e.target.checked);
+  }
+
+  onCopyClick(e) {
+    this.textArea.select();
+    document.execCommand('copy');
+    e.target.focus();
+    this.setState({ copySuccess: 'Copied!' });
   }
 
   onSourceFill = async source => {
@@ -256,11 +264,12 @@ class App extends Component {
       channelTitle,
       languageTags,
       isWavenetWrap,
+      copySuccess,
     } = this.state;
     return (
       <div className="ui container" style={{ marginTop: '10px' }}>
         <div className="ui segment">
-          <form className="ui form">
+          <form className="ui form" onSubmit={e => e.preventDefault()}>
             <div className="field">
               <label htmlFor="source">
                 YouTube Link/ID:
@@ -340,7 +349,19 @@ class App extends Component {
                       </div>
                     ))}
                   </div>
+                  {document.queryCommandSupported('copy') && (
+                    <div>
+                      <button
+                        className="ui primary right floated button"
+                        onClick={e => this.onCopyClick(e)}
+                      >
+                        Copy
+                      </button>
+                      {this.state.copySuccess}
+                    </div>
+                  )}
                   <textarea
+                    ref={textarea => (this.textArea = textarea)}
                     type="textarea"
                     name="ssml"
                     value={ssml}
