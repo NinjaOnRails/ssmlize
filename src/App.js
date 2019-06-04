@@ -197,22 +197,28 @@ class App extends Component {
     const ssml = {};
     let n = 0;
     ssml[n] = '';
-    for (let i = 0; i < xmlLength - 1; i += 1) {
-      const breakTime = (
-        parseInt(
-          (parseFloat(texts[i + 1].$.start) -
-            parseFloat(texts[i].$.start) -
-            parseFloat(texts[i].$.dur)) *
-            100,
-          10
-        ) + ssmlBreak
-      )
-        .toFixed(2)
-        .toString();
-      const breakTag = ` <break time=\\"${breakTime}ms\\" />`;
+    for (let i = 0; i < xmlLength; i += 1) {
+      let line = '';
+      if (i !== xmlLength - 1) {
+        const breakTime = (
+          parseInt(
+            (parseFloat(texts[i + 1].$.start) -
+              parseFloat(texts[i].$.start) -
+              parseFloat(texts[i].$.dur)) *
+              100,
+            10
+          ) + ssmlBreak
+        )
+          .toString();
+        const breakTag = ` <break time=\\"${breakTime}ms\\" />`;
+        line = texts[i]._ + breakTag + '\n';
+      } else {
+        line = texts[i]._;
+      }
+
       //   const breakTag =
       //     breakTime > 0 ? ` <break time=\\"${breakTime}s\\" />` : '';
-      const line = texts[i]._ + breakTag + '\n';
+
       if ((ssml[n] + line).length <= charLimit) {
         ssml[n] += line;
       } else {
@@ -264,7 +270,6 @@ class App extends Component {
       channelTitle,
       languageTags,
       isWavenetWrap,
-      copySuccess,
     } = this.state;
     return (
       <div className="ui container" style={{ marginTop: '10px' }}>
