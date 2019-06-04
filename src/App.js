@@ -65,9 +65,10 @@ class App extends Component {
   };
 
   onWavenetWrapChange(e) {
-    const { isWavenetWrap } = this.state;
+    const { isWavenetWrap, ssmlObject } = this.state;
     this.setState({ isWavenetWrap: !isWavenetWrap });
-    this.formatSsml(undefined, undefined, undefined, e.target.checked);
+    if (ssmlObject)
+      this.formatSsml(undefined, undefined, undefined, e.target.checked);
   }
 
   onSourceFill = async source => {
@@ -234,8 +235,6 @@ class App extends Component {
       }
     }
 
-    console.log(ssml[0].substring(0, 10));
-
     this.setState({
       ssmlObject: { ...ssml },
       ssml: ssml[this.state.ssmlPart],
@@ -275,37 +274,43 @@ class App extends Component {
                   onChange={this.handleChange}
                 />
               </label>
+            </div>
+            <div className="field">
               {originTitle && <div>{originTitle}</div>}
               {channelTitle && <div>{channelTitle}</div>}
               {image && <img width="200" src={image} alt="thumbnail" />}
-              <div>
-                <label htmlFor="">
-                  Break time (ms):
-                  <input
-                    type="number"
-                    name="ssmlBreak"
-                    min="0"
-                    max="30000"
-                    step="10"
-                    placeholder="eg. '500'"
-                    value={ssmlBreak}
-                    onChange={this.handleChange}
-                  />
-                </label>
-                <label htmlFor="">
-                  {languageTags &&
-                    languageTags.map(languageTag => (
-                      <span key={languageTag}>{languageTag} </span>
-                    ))}
-                  <input
-                    type="text"
-                    name="ssmlLanguage"
-                    placeholder="eg. 'vi'"
-                    value={ssmlLanguage}
-                    onChange={this.handleChange}
-                  />
-                </label>
-              </div>
+            </div>
+            <div className="field">
+              <label htmlFor="">
+                Break time (ms):
+                <input
+                  type="number"
+                  name="ssmlBreak"
+                  min="0"
+                  max="30000"
+                  step="10"
+                  placeholder="eg. '500'"
+                  value={ssmlBreak}
+                  onChange={this.handleChange}
+                />
+              </label>
+            </div>
+            <div className="field">
+              <label htmlFor="">
+                {languageTags &&
+                  languageTags.map(languageTag => (
+                    <span key={languageTag}>{languageTag} </span>
+                  ))}
+                <input
+                  type="text"
+                  name="ssmlLanguage"
+                  placeholder="eg. 'vi'"
+                  value={ssmlLanguage}
+                  onChange={this.handleChange}
+                />
+              </label>
+            </div>
+            <div className="field">
               <div className="ui toggle checkbox">
                 <input
                   type="checkbox"
@@ -315,6 +320,8 @@ class App extends Component {
                 />
                 <label>Wavenet wrap</label>
               </div>
+            </div>
+            <div className="field">
               {ssmlObject && (
                 <>
                   <div className="inline fields">
