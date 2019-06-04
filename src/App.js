@@ -23,6 +23,7 @@ class App extends Component {
     languageTags: [],
     parsedXml: {},
     xmlLength: 0,
+    isWavenetWrap: true,
   };
 
   handleChange = e => {
@@ -62,6 +63,12 @@ class App extends Component {
 
     this.setState({ [name]: val });
   };
+
+  onWavenetWrapChange(e) {
+    const { isWavenetWrap } = this.state;
+    this.setState({ isWavenetWrap: !isWavenetWrap });
+    this.formatSsml(undefined, undefined, undefined, e.target.checked);
+  }
 
   onSourceFill = async source => {
     // Check if source is YouTube and extract ID from it
@@ -111,7 +118,6 @@ class App extends Component {
           },
           channelTitle,
           localized: { title },
-          defaultAudioLanguage,
         } = res.data.items[0].snippet;
 
         this.setState({
@@ -176,7 +182,8 @@ class App extends Component {
   formatSsml(
     texts = this.state.parsedXml,
     xmlLength = this.state.xmlLength,
-    ssmlBreak = this.state.ssmlBreak
+    ssmlBreak = this.state.ssmlBreak,
+    isWavenetWrap = true
   ) {
     const ssml = {};
     let n = 0;
@@ -205,10 +212,34 @@ class App extends Component {
       }
     }
 
+    if (isWavenetWrap) {
+      for (let key in ssml) {
+        ssml[
+          key
+        ] = `curl -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+        -H "Content-Type: application/json; charset=utf-8" --data "{
+          'audioConfig':{
+            'audioEncoding':'MP3',
+          'speakingRate': 1.0,
+          'pitch': 0
+          },
+          'input':{
+           'ssml':'<speak>${ssml[key]}</speak>'
+          },
+          'voice':{
+            'languageCode':'vi-VN',
+            'name':'vi-VN-Wavenet-D'
+          }
+        }" "https://texttospeech.googleapis.com/v1beta1/text:synthesize" > synthesize-ssml.txt`;
+      }
+    }
+
+    console.log(ssml[0].substring(0, 10));
+
     this.setState({
       ssmlObject: { ...ssml },
       ssml: ssml[this.state.ssmlPart],
-      textareaHeight: parseInt(ssml[0].split('\n').length, 10),
+      textareaHeight: parseInt(ssml[0].split('\n').length + 2, 10),
     });
   }
 
@@ -216,7 +247,6 @@ class App extends Component {
     const {
       source,
       ssml,
-      isSsml,
       ssmlLanguage,
       ssmlBreak,
       textareaHeight,
@@ -226,6 +256,7 @@ class App extends Component {
       originTitle,
       channelTitle,
       languageTags,
+      isWavenetWrap,
     } = this.state;
     return (
       <div className="ui container" style={{ marginTop: '10px' }}>
@@ -248,46 +279,75 @@ class App extends Component {
               {channelTitle && <div>{channelTitle}</div>}
               {image && <img width="200" src={image} alt="thumbnail" />}
               <div>
-                <label htmlFor="">Break time (ms):</label>
-                <input
-                  type="number"
-                  name="ssmlBreak"
-                  min="0"
-                  max="30000"
-                  step="10"
-                  placeholder="ví dụ '500'"
-                  value={ssmlBreak}
-                  onChange={this.handleChange}
-                />
-                {languageTags &&
-                  languageTags.map(languageTag => (
-                    <span key={languageTag}>{languageTag} </span>
-                  ))}
-                <input
-                  type="text"
-                  name="ssmlLanguage"
-                  placeholder="ví dụ 'vi'"
-                  value={ssmlLanguage}
-                  onChange={this.handleChange}
-                />
+                <label htmlFor="">
+                  Break time (ms):
+                  <input
+                    type="number"
+                    name="ssmlBreak"
+                    min="0"
+                    max="30000"
+                    step="10"
+                    placeholder="eg. '500'"
+                    value={ssmlBreak}
+                    onChange={this.handleChange}
+                  />
+                </label>
+                <label htmlFor="">
+                  {languageTags &&
+                    languageTags.map(languageTag => (
+                      <span key={languageTag}>{languageTag} </span>
+                    ))}
+                  <input
+                    type="text"
+                    name="ssmlLanguage"
+                    placeholder="eg. 'vi'"
+                    value={ssmlLanguage}
+                    onChange={this.handleChange}
+                  />
+                </label>
               </div>
-
+              <div className="ui toggle checkbox">
+                <input
+                  type="checkbox"
+                  name="isWavenetWrap"
+                  checked={isWavenetWrap}
+                  onChange={e => this.onWavenetWrapChange(e)}
+                />
+                <label>Wavenet wrap</label>
+              </div>
+              {isWavenetWrap && (
+                <label htmlFor="">
+                  Break time (ms):
+                  <input
+                    type="number"
+                    name="ssmlBreak"
+                    min="0"
+                    max="30000"
+                    step="10"
+                    placeholder="eg. '500'"
+                    value={ssmlBreak}
+                    onChange={this.handleChange}
+                  />
+                </label>
+              )}
               {ssmlObject && (
                 <>
-                  <label htmlFor="">
+                  <div className="inline fields">
                     {Object.keys(ssmlObject).map(key => (
-                      <li key={key}>
-                        <input
-                          type="radio"
-                          name="ssmlPart"
-                          value={key}
-                          checked={ssmlPart === key}
-                          onChange={this.handleChange}
-                        />
-                        {key}
-                      </li>
+                      <div className="field" key={key}>
+                        <div className="ui radio">
+                          <label htmlFor="">{key}</label>
+                          <input
+                            type="radio"
+                            name="ssmlPart"
+                            value={key}
+                            checked={ssmlPart === key}
+                            onChange={this.handleChange}
+                          />
+                        </div>
+                      </div>
                     ))}
-                  </label>
+                  </div>
                   <textarea
                     type="textarea"
                     name="ssml"
