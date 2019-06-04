@@ -315,21 +315,6 @@ class App extends Component {
                 />
                 <label>Wavenet wrap</label>
               </div>
-              {isWavenetWrap && (
-                <label htmlFor="">
-                  Break time (ms):
-                  <input
-                    type="number"
-                    name="ssmlBreak"
-                    min="0"
-                    max="30000"
-                    step="10"
-                    placeholder="eg. '500'"
-                    value={ssmlBreak}
-                    onChange={this.handleChange}
-                  />
-                </label>
-              )}
               {ssmlObject && (
                 <>
                   <div className="inline fields">
