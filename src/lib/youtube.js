@@ -7,5 +7,4 @@ module.exports = axios.create({
     key: process.env.REACT_APP_YOUTUBE_API,
   },
 });
-console.log(process.env.REACT_APP_YOUTUBE_API)
 // 'AIzaSyD9TZEQX9cK7QO1vcJlZxUPvJTkdi-XUwU'
