@@ -201,7 +201,7 @@ class App extends Component {
     for (let i = 0; i < xmlLength; i += 1) {
       const newText = texts[i]._.replace(
         regex,
-        match => ` <say-as interpret-as="characters">${match}</say-as> `
+        match => ` <say-as interpret-as=\\"characters\\">${match}</say-as> `
       );
       let line = '';
       if (i !== xmlLength - 1) {
