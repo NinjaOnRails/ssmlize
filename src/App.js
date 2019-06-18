@@ -197,7 +197,7 @@ class App extends Component {
     const ssml = {};
     let n = 0;
     ssml[n] = '';
-    const regex = /(?:[a-zA-Z]\.){2,3}|(?:\W[A-Z]{2,3}(\W|\.|\?|\!))|^[A-Z]{2,3}/g;
+    const regex = /(?:[a-zA-Z]\.){2,3}|(?:\W[A-Z]{2,3}(\W|\.|\?|!))|^[A-Z]{2,3}/g;
     for (let i = 0; i < xmlLength; i += 1) {
       const newText = texts[i]._.replace(
         regex,
