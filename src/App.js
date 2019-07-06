@@ -260,6 +260,20 @@ class App extends Component {
     });
   }
 
+  renderCopyButton() {
+    return (
+      <div>
+        <button
+          className="ui primary right floated button"
+          onClick={e => this.onCopyClick(e)}
+        >
+          Copy
+        </button>
+        {this.state.copySuccess}
+      </div>
+    );
+  }
+
   render() {
     const {
       source,
@@ -358,17 +372,8 @@ class App extends Component {
                       </div>
                     ))}
                   </div>
-                  {document.queryCommandSupported('copy') && (
-                    <div>
-                      <button
-                        className="ui primary right floated button"
-                        onClick={e => this.onCopyClick(e)}
-                      >
-                        Copy
-                      </button>
-                      {this.state.copySuccess}
-                    </div>
-                  )}
+                  {document.queryCommandSupported('copy') &&
+                    this.renderCopyButton()}
                   <textarea
                     ref={textarea => (this.textArea = textarea)}
                     type="textarea"
@@ -377,6 +382,8 @@ class App extends Component {
                     onChange={this.handleChange}
                     rows={Math.round(textareaHeight)}
                   />
+                  {document.queryCommandSupported('copy') &&
+                    this.renderCopyButton()}
                 </>
               )}
             </div>
