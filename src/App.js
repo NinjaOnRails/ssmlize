@@ -251,7 +251,7 @@ class App extends Component {
         regex,
         match => ` <say-as interpret-as=\\"characters\\">${match}</say-as> `
       );
-      newText = newText.replace(/&quot;/g, '"');
+      newText = newText.replace(/&quot;/g, '');
       newText = newText.replace(/&#39;/g, "'");
       let line = '';
       if (i !== xmlLength - 1) {
