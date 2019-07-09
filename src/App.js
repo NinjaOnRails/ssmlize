@@ -25,6 +25,11 @@ class App extends Component {
     xmlLength: 0,
     isWavenetWrap: true,
     copySuccess: '',
+    languageCode: 'vi-VN',
+    voiceName: 'vi-VN-Wavenet-D',
+    speakingRate: '1.0',
+    fileName: 'synthesize-ssml.txt',
+    error: '',
   };
 
   handleChange = e => {
@@ -36,13 +41,52 @@ class App extends Component {
       ssmlBreak,
       ssmlPart,
       ssmlObject,
+      languageCode,
+      voiceName,
+      speakingRate,
+      fileName,
     } = this.state;
-    const val = type === 'number' ? parseInt(value, 10) : value;
+    const val = type === 'number' ? parseInt(value, 10) : value.trim();
 
-    if (name === 'source' && val.length >= 11 && val !== source)
+    if (name === 'source' && val.length >= 11 && val !== source) {
       this.onSourceFill(val);
+      this.setState({ error: '' });
+    }
     if (name === 'ssmlBreak' && val >= 0 && val !== ssmlBreak)
       this.formatSsml(undefined, undefined, val);
+    if (name === 'languageCode' && val !== languageCode) {
+      this.formatSsml(undefined, undefined, undefined, undefined, val);
+    }
+    if (name === 'voiceName' && val !== voiceName)
+      this.formatSsml(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        val
+      );
+    if (name === 'speakingRate' && val >= 0 && val !== speakingRate)
+      this.formatSsml(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        val
+      );
+    if (name === 'fileName' && val !== fileName)
+      this.formatSsml(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        val
+      );
     if (
       name === 'ssmlLanguage' &&
       val.length >= 2 &&
@@ -106,7 +150,7 @@ class App extends Component {
     } else if (youtubeId.length === youtubeIdLength) {
       originId = youtubeId;
     } else {
-      throw new Error('No valid YouTube source was provided');
+      this.setState({ error: 'No valid YouTube source was provided' });
     }
 
     if (this.state.youtubeId !== originId) {
@@ -119,7 +163,7 @@ class App extends Component {
         });
 
         if (!res.data.items.length)
-          throw new Error('Video not found on Youtube');
+          this.setState({ error: 'Video not found on Youtube' });
 
         const {
           thumbnails: {
@@ -143,7 +187,7 @@ class App extends Component {
               videoId: originId,
             },
           });
-          if (!items) throw new Error('No captions found');
+          if (!items) this.setState({ error: 'No captions found' });
 
           const languageTags = [];
           items.forEach(({ snippet: { language } }) => {
@@ -173,7 +217,7 @@ class App extends Component {
         `https://www.youtube.com/api/timedtext?lang=${ssmlLanguage}&v=${youtubeId}`
       );
 
-      if (!data) throw new Error('Could not fetch XML');
+      if (!data) this.setState({ error: 'Could not fetch XML' });
 
       parseString(data, (err, { transcript: { text } }) => {
         this.setState({
@@ -192,17 +236,23 @@ class App extends Component {
     texts = this.state.parsedXml,
     xmlLength = this.state.xmlLength,
     ssmlBreak = this.state.ssmlBreak,
-    isWavenetWrap = this.state.isWavenetWrap
+    isWavenetWrap = this.state.isWavenetWrap,
+    languageCode = this.state.languageCode,
+    voiceName = this.state.voiceName,
+    speakingRate = this.state.speakingRate,
+    fileName = this.state.fileName
   ) {
     const ssml = {};
     let n = 0;
     ssml[n] = '';
     const regex = /(?:[a-zA-Z]\.){2,3}|(?:\W[A-Z]{2,3}(\W|\.|\?|\!))|^[A-Z]{2,3}/g;
     for (let i = 0; i < xmlLength; i += 1) {
-      const newText = texts[i]._.replace(
+      let newText = texts[i]._.replace(
         regex,
         match => ` <say-as interpret-as=\\"characters\\">${match}</say-as> `
       );
+      newText = newText.replace(/&quot;/g, '"');
+      newText = newText.replace(/&#39;/g, "'");
       let line = '';
       if (i !== xmlLength - 1) {
         const breakTime = (
@@ -239,17 +289,17 @@ class App extends Component {
         -H "Content-Type: application/json; charset=utf-8" --data "{
           'audioConfig':{
             'audioEncoding':'MP3',
-          'speakingRate': 1.0,
+          'speakingRate': ${speakingRate},
           'pitch': 0
           },
           'input':{
            'ssml':'<speak>${ssml[key]}</speak>'
           },
           'voice':{
-            'languageCode':'vi-VN',
-            'name':'vi-VN-Wavenet-D'
+            'languageCode':'${languageCode}',
+            'name':'${voiceName}'
           }
-        }" "https://texttospeech.googleapis.com/v1beta1/text:synthesize" > synthesize-ssml.txt`;
+        }" "https://texttospeech.googleapis.com/v1beta1/text:synthesize" > ${fileName}`;
       }
     }
 
@@ -288,6 +338,11 @@ class App extends Component {
       channelTitle,
       languageTags,
       isWavenetWrap,
+      languageCode,
+      voiceName,
+      speakingRate,
+      fileName,
+      error,
     } = this.state;
     return (
       <div className="ui container" style={{ marginTop: '10px' }}>
@@ -306,6 +361,7 @@ class App extends Component {
                   onChange={this.handleChange}
                 />
               </label>
+              {error && <div className="ui message negative">{error}</div>}
             </div>
             <div className="field">
               {originTitle && <div>{originTitle}</div>}
@@ -329,15 +385,66 @@ class App extends Component {
             </div>
             <div className="field">
               <label htmlFor="">
-                {languageTags &&
+                <div>Language:</div>
+                {languageTags.length !== 0 && <>Available tags:</>}
+                {languageTags.length !== 0 &&
                   languageTags.map(languageTag => (
-                    <span key={languageTag}>{languageTag} </span>
+                    <span key={languageTag}> {languageTag}</span>
                   ))}
                 <input
                   type="text"
                   name="ssmlLanguage"
                   placeholder="eg. 'vi'"
                   value={ssmlLanguage}
+                  onChange={this.handleChange}
+                />
+              </label>
+            </div>
+            <div className="field">
+              <label htmlFor="">
+                <a href="http://www.rfc-editor.org/rfc/bcp/bcp47.txt">BCP-47</a>{' '}
+                language tag:
+                <input
+                  type="text"
+                  name="languageCode"
+                  placeholder="eg. 'vi-VN'"
+                  value={languageCode}
+                  onChange={this.handleChange}
+                />
+              </label>
+            </div>
+            <div className="field">
+              <label htmlFor="">
+                Voice Name:
+                <input
+                  type="text"
+                  name="voiceName"
+                  placeholder="eg. 'vi-VN-Wavenet-D'"
+                  value={voiceName}
+                  onChange={this.handleChange}
+                />
+              </label>
+            </div>
+            <div className="field">
+              <label htmlFor="">
+                Speaking Rate:
+                <input
+                  type="text"
+                  name="speakingRate"
+                  placeholder="eg. '1.0'"
+                  value={speakingRate}
+                  onChange={this.handleChange}
+                />
+              </label>
+            </div>
+            <div className="field">
+              <label htmlFor="">
+                Result File Name:
+                <input
+                  type="text"
+                  name="fileName"
+                  placeholder="eg. 'synthesize-ssml.txt'"
+                  value={fileName}
                   onChange={this.handleChange}
                 />
               </label>
