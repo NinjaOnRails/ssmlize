@@ -253,6 +253,7 @@ class App extends Component {
       );
       newText = newText.replace(/&quot;/g, '\\"');
       newText = newText.replace(/&#39;/g, "\\'");
+      newText = newText.replace(/\((.*)\)/g, '');
       let line = '';
       if (i !== xmlLength - 1) {
         const breakTime = (
